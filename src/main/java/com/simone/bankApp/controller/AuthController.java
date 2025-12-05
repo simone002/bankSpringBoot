@@ -11,7 +11,7 @@ import com.simone.bankApp.dto.RegisterRequest;
 import com.simone.bankApp.service.AuthService;
 
 @RestController
-@RequestMapping("/auth") // Tutte le chiamate inizieranno con /auth
+@RequestMapping("/auth") 
 public class AuthController {
 
     @Autowired

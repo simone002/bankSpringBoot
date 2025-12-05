@@ -8,4 +8,6 @@ import com.simone.bankApp.entity.Account;
 public interface AccountRepository extends JpaRepository<Account, Long> {
     
     Optional<Account> findByUserId(Long userId);
+
+    Optional<Account> findByIban(String iban);
 }

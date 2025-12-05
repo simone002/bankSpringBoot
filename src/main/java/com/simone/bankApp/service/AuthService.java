@@ -30,15 +30,13 @@ public class AuthService {
     public User register(RegisterRequest request) {
         User user = new User();
         user.setUsername(request.getUsername());
-        // CRIPTIAMO la password prima di salvarla!
         user.setPassword(passwordEncoder.encode(request.getPassword())); 
         user.setEmail(request.getEmail());
 
-        user.setRole("ROLE_USER"); // Ruolo di default
+        user.setRole("ROLE_USER");
 
         User savedUser = userRepository.save(user);
 
-        // Creazione automatica del conto
         Account account = new Account();
         account.setUser(savedUser);
         account.setBalance(BigDecimal.ZERO);
@@ -53,11 +51,9 @@ public class AuthService {
     }
 
     public boolean login(RegisterRequest request) {
-        // Logica di login (autenticazione) qui
         Optional<User> userOpt = userRepository.findByUsername(request.getUsername());
         if (userOpt.isPresent()) {
             User user = userOpt.get();
-            // Verifica della password
             return passwordEncoder.matches(request.getPassword(), user.getPassword());
         }
         return false;  

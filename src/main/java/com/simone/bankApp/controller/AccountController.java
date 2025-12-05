@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.simone.bankApp.dto.AmountRequest;
+import com.simone.bankApp.dto.TransferRequest;
 import com.simone.bankApp.entity.Account;
 import com.simone.bankApp.entity.Transaction;
 import com.simone.bankApp.repository.AccountRepository;
@@ -30,10 +31,9 @@ public class AccountController {
     private AccountService accountService;
 
 
-    @GetMapping("/{userId}/balance") // Cambia {accountId} in {userId}
+    @GetMapping("/{userId}/balance")
     public ResponseEntity<BigDecimal> getBalance(@PathVariable Long userId) {
         
-        // Usa il service che cerca per UserID, invece del repository diretto
         BigDecimal balance = accountService.getAccountBalance(userId);
         return ResponseEntity.ok(balance);
     }
@@ -58,6 +58,15 @@ public class AccountController {
         
         Account updatedAccount = accountService.withdraw(userId, request.getAmount());
         return ResponseEntity.ok(updatedAccount);
+    }
+
+    @PostMapping("/{fromUserId}/transfer")
+    public ResponseEntity<String> transfer(
+            @PathVariable Long fromUserId,
+            @RequestBody TransferRequest request) {
+        
+        accountService.transfer(fromUserId, request);
+        return ResponseEntity.ok("Bonifico eseguito con successo!");
     }
 
 

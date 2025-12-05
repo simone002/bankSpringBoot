@@ -7,6 +7,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.simone.bankApp.dto.TransferRequest;
 import com.simone.bankApp.entity.Account;
 import com.simone.bankApp.entity.Transaction;
 import com.simone.bankApp.repository.AccountRepository;
@@ -32,7 +33,6 @@ public class AccountService {
     @Transactional
     public Account deposit(Long userId, BigDecimal amount) { 
 
-        // Usa 'amount' direttamente, senza getAmount()
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Deposit amount must be positive");
         }
@@ -62,11 +62,9 @@ public class AccountService {
 
     
     public List<Transaction> getTransactions(Long userId) {
-        // 1. Troviamo il conto dell'utente
         Account account = accountRepository.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("Account not found"));
         
-        // 2. Usiamo l'ID del conto per trovare le transazioni
         return transactionRepository.findByAccountIdOrderByTimestampDesc(account.getId());
     }
 
@@ -98,6 +96,57 @@ public class AccountService {
         transactionRepository.save(transaction);
 
         return savedAccount;
+    }
+
+    @Transactional 
+    public void transfer(Long fromUserId, TransferRequest request) {
+        String toIban = request.getToIban();
+        BigDecimal amount = request.getAmount();
+
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("L'importo deve essere positivo.");
+        }
+
+        Account fromAccount = accountRepository.findByUserId(fromUserId)
+                .orElseThrow(() -> new RuntimeException("Conto mittente non trovato"));
+
+        if (fromAccount.getIban().equals(toIban)) {
+            throw new IllegalArgumentException("Non puoi inviare soldi al tuo stesso IBAN.");
+        }
+
+        Account toAccount = accountRepository.findByIban(toIban)
+                .orElseThrow(() -> new RuntimeException("IBAN destinatario non esistente"));
+
+        if (fromAccount.getBalance().compareTo(amount) < 0) {
+            throw new IllegalArgumentException("Fondi insufficienti per il bonifico.");
+        }
+
+        fromAccount.setBalance(fromAccount.getBalance().subtract(amount));
+        toAccount.setBalance(toAccount.getBalance().add(amount));
+
+        accountRepository.save(fromAccount);
+        accountRepository.save(toAccount);
+
+        Transaction debitTx = new Transaction();
+        debitTx.setAccount(fromAccount);
+        debitTx.setAmount(amount.negate()); 
+        debitTx.setType("TRANSFER_OUT");
+        debitTx.setCategory("Bonifico Inviato");
+        debitTx.setDetails("A IBAN: " + toIban);
+        debitTx.setTimestamp(LocalDateTime.now());
+        debitTx.setBalanceAfter(fromAccount.getBalance());
+        transactionRepository.save(debitTx);
+
+        // 8. CREA TRANSAZIONE PER IL DESTINATARIO (Entrata)
+        Transaction creditTx = new Transaction();
+        creditTx.setAccount(toAccount);
+        creditTx.setAmount(amount); // Positivo
+        creditTx.setType("TRANSFER_IN");
+        creditTx.setCategory("Bonifico Ricevuto");
+        creditTx.setDetails("Da User ID: " + fromUserId);
+        creditTx.setTimestamp(LocalDateTime.now());
+        creditTx.setBalanceAfter(toAccount.getBalance());
+        transactionRepository.save(creditTx);
     }
 
 }
