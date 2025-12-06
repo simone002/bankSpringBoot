@@ -71,9 +71,11 @@ public class AuthService {
                         account.getBalance(),
                         "Login effettuato con successo!"
                     );
+                } else {
+                    throw new RuntimeException("Account not found for user");
                 }
             }
         }
-        return null;  
+        throw new RuntimeException("Invalid credentials");
     }
 }

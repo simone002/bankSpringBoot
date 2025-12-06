@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.simone.bankApp.dto.ErrorResponse;
 import com.simone.bankApp.dto.LoginResponse;
 import com.simone.bankApp.dto.RegisterRequest;
 import com.simone.bankApp.service.AuthService;
@@ -28,11 +29,12 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody RegisterRequest request) {
-        LoginResponse response = authService.login(request);
-        if (response != null) {
+        try {
+            LoginResponse response = authService.login(request);
             return ResponseEntity.ok(response);
-        } else {
-            return ResponseEntity.status(401).body("Credenziali non valide");
+        } catch (RuntimeException e) {
+            ErrorResponse error = new ErrorResponse("INVALID_CREDENTIALS", "Credenziali non valide");
+            return ResponseEntity.status(401).body(error);
         }
     }
 
