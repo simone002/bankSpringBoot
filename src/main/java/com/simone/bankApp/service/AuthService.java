@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.simone.bankApp.dto.LoginResponse;
 import com.simone.bankApp.dto.RegisterRequest;
 import com.simone.bankApp.entity.Account;
 import com.simone.bankApp.entity.User;
@@ -58,13 +59,25 @@ public class AuthService {
         
     }
 
-    public User login(RegisterRequest request) {
+    public LoginResponse login(RegisterRequest request) {
         Optional<User> userOpt = userRepository.findByUsername(request.getUsername());
         
         if (userOpt.isPresent()) {
             User user = userOpt.get();
             if (passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-                return user; // PASSWORD CORRETTA: Restituisci l'utente
+                // Recupera anche l'account dell'utente
+                Account account = accountRepository.findByUserId(user.getId())
+                        .orElseThrow(() -> new RuntimeException("Account non trovato per l'utente"));
+                
+                // Restituisci tutte le informazioni inclusi IBAN e saldo
+                return new LoginResponse(
+                    user.getId(),
+                    user.getUsername(),
+                    user.getEmail(),
+                    user.getRole(),
+                    account.getIban(),
+                    account.getBalance()
+                );
             }
         }
         

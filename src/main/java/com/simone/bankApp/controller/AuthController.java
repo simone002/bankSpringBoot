@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.simone.bankApp.dto.LoginResponse;
 import com.simone.bankApp.dto.RegisterRequest;
 import com.simone.bankApp.entity.User;
 import com.simone.bankApp.service.AuthService;
@@ -33,8 +34,8 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody RegisterRequest request) {
         try {
-            User user = authService.login(request);
-            return ResponseEntity.ok(user); // Restituisce JSON { id: 1, username: "...", ... }
+            LoginResponse loginResponse = authService.login(request);
+            return ResponseEntity.ok(loginResponse); // Restituisce JSON con tutte le info incluso IBAN e saldo
         } catch (RuntimeException e) {
             return ResponseEntity.status(401).body(e.getMessage());
         }
