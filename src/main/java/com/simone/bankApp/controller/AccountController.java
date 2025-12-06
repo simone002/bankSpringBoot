@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.simone.bankApp.dto.AccountInfoResponse;
 import com.simone.bankApp.dto.AmountRequest;
 import com.simone.bankApp.dto.TransferRequest;
 import com.simone.bankApp.entity.Account;
@@ -30,12 +31,9 @@ public class AccountController {
     @Autowired
     private AccountService accountService;
 
-
-    @GetMapping("/{userId}/balance")
-    public ResponseEntity<BigDecimal> getBalance(@PathVariable Long userId) {
-        
-        BigDecimal balance = accountService.getAccountBalance(userId);
-        return ResponseEntity.ok(balance);
+    @GetMapping("/{userId}/balance") 
+    public ResponseEntity<AccountInfoResponse> getAccountInfo(@PathVariable Long userId) {
+        return ResponseEntity.ok(accountService.getAccountInfo(userId));
     }
 
 

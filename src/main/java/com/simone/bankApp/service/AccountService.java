@@ -7,6 +7,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.simone.bankApp.dto.AccountInfoResponse;
 import com.simone.bankApp.dto.TransferRequest;
 import com.simone.bankApp.entity.Account;
 import com.simone.bankApp.entity.Transaction;
@@ -147,6 +148,17 @@ public class AccountService {
         creditTx.setTimestamp(LocalDateTime.now());
         creditTx.setBalanceAfter(toAccount.getBalance());
         transactionRepository.save(creditTx);
+    }
+
+    public AccountInfoResponse getAccountInfo(Long userId) {
+        Account account = accountRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("Account not found"));
+        
+        return new AccountInfoResponse(
+            account.getUser().getUsername(), // Prende il nome dall'utente collegato
+            account.getIban(),               // Prende l'IBAN vero
+            account.getBalance()             // Prende il saldo
+        );
     }
 
 }

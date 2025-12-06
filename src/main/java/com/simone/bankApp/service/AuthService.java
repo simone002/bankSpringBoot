@@ -28,6 +28,14 @@ public class AuthService {
     private AccountRepository accountRepository;
 
     public User register(RegisterRequest request) {
+
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new RuntimeException("Email già registrata!");
+        }
+        if (userRepository.findByUsername(request.getUsername()).isPresent()) {
+            throw new RuntimeException("Username già utilizzato!");
+        }
+
         User user = new User();
         user.setUsername(request.getUsername());
         user.setPassword(passwordEncoder.encode(request.getPassword())); 
@@ -50,12 +58,17 @@ public class AuthService {
         
     }
 
-    public boolean login(RegisterRequest request) {
+    public User login(RegisterRequest request) {
         Optional<User> userOpt = userRepository.findByUsername(request.getUsername());
+        
         if (userOpt.isPresent()) {
             User user = userOpt.get();
-            return passwordEncoder.matches(request.getPassword(), user.getPassword());
+            if (passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+                return user; // PASSWORD CORRETTA: Restituisci l'utente
+            }
         }
-        return false;  
+        
+        // Se non trovato o password errata
+        throw new RuntimeException("Credenziali non valide");
     }
 }
