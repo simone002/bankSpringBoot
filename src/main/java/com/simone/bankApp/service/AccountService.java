@@ -7,9 +7,11 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.simone.bankApp.dto.AccountInfoResponse;
 import com.simone.bankApp.dto.TransferRequest;
 import com.simone.bankApp.entity.Account;
 import com.simone.bankApp.entity.Transaction;
+import com.simone.bankApp.entity.User;
 import com.simone.bankApp.repository.AccountRepository;
 import com.simone.bankApp.repository.TransactionRepository;
 
@@ -23,6 +25,22 @@ public class AccountService {
 
     @Autowired
     private TransactionRepository transactionRepository;
+
+    public AccountInfoResponse getAccountInfo(Long userId) {
+        Account account = accountRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("Account not found for user ID: " + userId));
+        
+        User user = account.getUser();
+        
+        return new AccountInfoResponse(
+            user.getId(),
+            user.getUsername(),
+            user.getEmail(),
+            account.getId(),
+            account.getIban(),
+            account.getBalance()
+        );
+    }
 
     public BigDecimal getAccountBalance(Long userId) {
         return accountRepository.findByUserId(userId)

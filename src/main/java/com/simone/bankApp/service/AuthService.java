@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.simone.bankApp.dto.LoginResponse;
 import com.simone.bankApp.dto.RegisterRequest;
 import com.simone.bankApp.entity.Account;
 import com.simone.bankApp.entity.User;
@@ -50,12 +51,29 @@ public class AuthService {
         
     }
 
-    public boolean login(RegisterRequest request) {
+    public LoginResponse login(RegisterRequest request) {
         Optional<User> userOpt = userRepository.findByUsername(request.getUsername());
         if (userOpt.isPresent()) {
             User user = userOpt.get();
-            return passwordEncoder.matches(request.getPassword(), user.getPassword());
+            boolean isPasswordCorrect = passwordEncoder.matches(request.getPassword(), user.getPassword());
+            
+            if (isPasswordCorrect) {
+                // Fetch the account information
+                Optional<Account> accountOpt = accountRepository.findByUserId(user.getId());
+                
+                if (accountOpt.isPresent()) {
+                    Account account = accountOpt.get();
+                    return new LoginResponse(
+                        user.getId(),
+                        user.getUsername(),
+                        user.getEmail(),
+                        account.getIban(),
+                        account.getBalance(),
+                        "Login effettuato con successo!"
+                    );
+                }
+            }
         }
-        return false;  
+        return null;  
     }
 }
